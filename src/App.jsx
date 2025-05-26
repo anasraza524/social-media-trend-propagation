@@ -4,6 +4,7 @@ import GraphVisualization from './components/GraphVisualization';
 import Results from './components/Results';
 
 const App = () => {
+  // ... (existing state and algorithm code remains the same) ...
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [path, setPath] = useState([]);
   const [influence, setInfluence] = useState(null);
@@ -62,36 +63,46 @@ const App = () => {
     setPath(result.path);
     setInfluence(result.influence);
   };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Social Media Influence Analyzer
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            Social Influence Pathway Analyzer
           </h1>
-          <p className="text-lg text-gray-600">
-            Visualize and analyze trend propagation paths across social networks
+          <p className="text-lg text-gray-700">
+            Discover optimal trend propagation paths with community-aware analysis
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Input Panel */}
           <div className="lg:col-span-1">
-            <GraphInput
-              setGraph={setGraph}
-              setWeightType={setWeightType}
-              setPenalty={setPenalty}
-              onCalculate={handleCalculate}
-            />
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
+              <GraphInput
+                setGraph={setGraph}
+                setWeightType={setWeightType}
+                setPenalty={setPenalty}
+                onCalculate={handleCalculate}
+              />
+            </div>
           </div>
           
+          {/* Visualization & Results */}
           <div className="lg:col-span-2 space-y-8">
-            <GraphVisualization graph={graph} path={path} />
-            <Results
-              path={path}
-              influence={influence}
-              weightType={weightType}
-              nodes={graph.nodes}
-            />
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
+              <GraphVisualization graph={graph} path={path} />
+            </div>
+
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
+              <Results
+                path={path}
+                influence={influence}
+                weightType={weightType}
+                nodes={graph.nodes}
+              />
+            </div>
           </div>
         </div>
       </div>
