@@ -1,20 +1,43 @@
 import React, { useState } from 'react';
+import { Box, Typography, Grid, Container, styled } from '@mui/material';
 import GraphInput from './components/GraphInput';
 import GraphVisualization from './components/GraphVisualization';
 import Results from './components/Results';
 
+// Styled Box for the main container with gradient background
+const MainContainer = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  background: 'linear-gradient(to bottom right, #F3E5F5, #E8EAF6)',
+  padding: theme.spacing(4, 2, 4),
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(4, 3, 4),
+  },
+  [theme.breakpoints.up('lg')]: {
+    padding: theme.spacing(4, 8, 4),
+  },
+}));
+
+// Styled Paper for child components
+const StyledPaper = styled(Box)(({ theme }) => ({
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backdropFilter: 'blur(4px)',
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: theme.shadows[3],
+  border: `1px solid ${theme.palette.grey[200]}`,
+  padding: theme.spacing(3),
+}));
+
 const App = () => {
-  // ... (existing state and algorithm code remains the same) ...
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [path, setPath] = useState([]);
   const [influence, setInfluence] = useState(null);
   const [weightType, setWeightType] = useState('Interaction Frequency');
   const [penalty, setPenalty] = useState(0.9);
 
- const maxInfluencePath = (graph, source, destination, penalty) => {
-    const nodes = [...new Set([...graph.nodes.map(n => n.id)])];
+  const maxInfluencePath = (graph, source, destination, penalty) => {
+    const nodes = [...new Set([...graph.nodes.map((n) => n.id)])];
     const adjList = {};
-    graph.edges.forEach(edge => {
+    graph.edges.forEach((edge) => {
       if (!adjList[edge.from]) adjList[edge.from] = [];
       adjList[edge.from].push({ to: edge.to, weight: edge.weight, community: edge.community });
     });
@@ -24,7 +47,7 @@ const App = () => {
     const relUsed = {};
     const pq = [];
 
-    nodes.forEach(node => (influence[node] = 0));
+    nodes.forEach((node) => (influence[node] = 0));
     influence[source] = 1.0;
     prev[source] = null;
     relUsed[source] = '';
@@ -42,7 +65,7 @@ const App = () => {
         return { path, influence: currentInfluence };
       }
 
-      (adjList[currentNode] || []).forEach(edge => {
+      (adjList[currentNode] || []).forEach((edge) => {
         let newInfluence = currentInfluence * edge.weight;
         if (relUsed[currentNode] && relUsed[currentNode] !== edge.community) {
           newInfluence *= penalty;
@@ -65,48 +88,52 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+    <MainContainer>
+      <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box textAlign="center">
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            sx={{
+              background: 'linear-gradient(to right, #7e57c2, #3f51b5)',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+              mb: 1,
+            }}
+          >
             Social Influence Pathway Analyzer
-          </h1>
-          <p className="text-lg text-gray-700">
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
             Discover optimal trend propagation paths with community-aware analysis
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Grid container spacing={4}>
           {/* Input Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
+          <Grid item xs={12} lg={4}>
+            <StyledPaper>
               <GraphInput
                 setGraph={setGraph}
                 setWeightType={setWeightType}
                 setPenalty={setPenalty}
                 onCalculate={handleCalculate}
               />
-            </div>
-          </div>
-          
-          {/* Visualization & Results */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
-              <GraphVisualization graph={graph} path={path} />
-            </div>
+            </StyledPaper>
+          </Grid>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
-              <Results
-                path={path}
-                influence={influence}
-                weightType={weightType}
-                nodes={graph.nodes}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          {/* Visualization & Results */}
+          <Grid item xs={12} lg={8} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <StyledPaper>
+              <GraphVisualization graph={graph} path={path} />
+            </StyledPaper>
+
+            <StyledPaper>
+              <Results path={path} influence={influence} weightType={weightType} nodes={graph.nodes} />
+            </StyledPaper>
+          </Grid>
+        </Grid>
+      </Container>
+    </MainContainer>
   );
 };
 

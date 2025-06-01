@@ -1,68 +1,138 @@
 import React from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  styled,
+} from '@mui/material';
+
+// Styled Paper for the main container
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: theme.shadows[3],
+  backgroundColor: theme.palette.background.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(3),
+}));
+
+// Styled Paper for the no-path warning
+const WarningPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.warning.light,
+  border: `1px solid ${theme.palette.warning.main}`,
+  textAlign: 'center',
+  color: theme.palette.warning.contrastText,
+}));
+
+// Styled Box for metric cards
+const MetricCard = styled(Box)(({ theme, bgcolor }) => ({
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: bgcolor,
+}));
+
+// Styled Box for node/path tags
+const Tag = styled(Box)(({ theme, isPath }) => ({
+  padding: theme.spacing(0.5, 1.5),
+  borderRadius: theme.shape.borderRadius,
+  fontSize: '0.875rem',
+  fontWeight: 'medium',
+  backgroundColor: isPath ? theme.palette.error.light : theme.palette.grey[100],
+  color: isPath ? theme.palette.error.contrastText : theme.palette.text.secondary,
+}));
 
 const Results = ({ path, influence, weightType, nodes }) => {
   if (!path.length) {
     return (
-      <div className="p-6 bg-yellow-50 rounded-lg border border-yellow-100 text-center text-yellow-800">
-        <span className="font-medium">No path found between specified nodes.</span>
-      </div>
+      <WarningPaper elevation={1}>
+        <Typography variant="body1" fontWeight="medium">
+          No path found between specified nodes.
+        </Typography>
+      </WarningPaper>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 border-b pb-3">Analysis Results</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Maximum {weightType}</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-            {influence !== -1 ? influence.toFixed(3) : 'N/A'}
-          </p>
-        </div>
-        
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="text-sm font-semibold text-green-600 uppercase tracking-wide">Optimal Path Length</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{path.length}</p>
-        </div>
-      </div>
+    <StyledPaper elevation={3}>
+      <Box borderBottom={1} pb={2}>
+        <Typography variant="h6" fontWeight="bold" color="textPrimary">
+          Analysis Results
+        </Typography>
+      </Box>
 
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Connection Path</h3>
-          <div className="flex flex-wrap gap-2">
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <MetricCard bgcolor="#E3F2FD">
+            <Typography
+              variant="caption"
+              fontWeight="bold"
+              color="primary"
+              textTransform="uppercase"
+              letterSpacing={1}
+            >
+              Maximum {weightType}
+            </Typography>
+            <Typography variant="h4" fontWeight="bold" color="textPrimary" mt={1}>
+              {influence !== -1 ? influence.toFixed(3) : 'N/A'}
+            </Typography>
+          </MetricCard>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <MetricCard bgcolor="#E8F5E9">
+            <Typography
+              variant="caption"
+              fontWeight="bold"
+              color="success.main"
+              textTransform="uppercase"
+              letterSpacing={1}
+            >
+              Optimal Path Length
+            </Typography>
+            <Typography variant="h4" fontWeight="bold" color="textPrimary" mt={1}>
+              {path.length}
+            </Typography>
+          </MetricCard>
+        </Grid>
+      </Grid>
+
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Box>
+          <Typography variant="h6" fontWeight="bold" color="textPrimary" mb={1}>
+            Connection Path
+          </Typography>
+          <Box display="flex" flexWrap="wrap" gap={1} alignItems="center">
             {path.map((node, index) => (
               <React.Fragment key={node}>
-                <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
-                  {node}
-                </span>
+                <Tag isPath>{node}</Tag>
                 {index < path.length - 1 && (
-                  <span className="text-gray-400 self-center">→</span>
+                  <Typography variant="body2" color="text.disabled" sx={{ alignSelf: 'center' }}>
+                    →
+                  </Typography>
                 )}
               </React.Fragment>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Network Composition</h3>
-          <div className="flex flex-wrap gap-2">
-            {nodes.map(node => (
-              <span 
-                key={node.id}
-                className={`px-2 py-1 rounded-md text-sm ${
-                  path.includes(node.id)
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
+        <Box>
+          <Typography variant="h6" fontWeight="bold" color="textPrimary" mb={1}>
+            Network Composition
+          </Typography>
+          <Box display="flex" flexWrap="wrap" gap={1}>
+            {nodes.map((node) => (
+              <Tag key={node.id} isPath={path.includes(node.id)}>
                 {node.id}
-              </span>
+              </Tag>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </StyledPaper>
   );
 };
 

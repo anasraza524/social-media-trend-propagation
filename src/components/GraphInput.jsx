@@ -1,4 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Button,
+  Grid,
+  Paper,
+  IconButton,
+  FormHelperText,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import BookIcon from '@mui/icons-material/Book';
+import ErrorIcon from '@mui/icons-material/Error';
+
+// Styled Paper component for the main container
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  width: '100%',
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backdropFilter: 'blur(4px)',
+  border: `1px solid ${theme.palette.grey[200]}`,
+  boxShadow: theme.shadows[3],
+}));
 
 const GraphInput = ({ setGraph, setWeightType, setPenalty, onCalculate }) => {
   const [edgesInput, setEdgesInput] = useState('');
@@ -34,19 +62,23 @@ const GraphInput = ({ setGraph, setWeightType, setPenalty, onCalculate }) => {
   };
 
   const handleSubmit = () => {
-    const edgeLines = edgesInput.split('\n').filter(line => line.trim());
+    const edgeLines = edgesInput.split('\n').filter((line) => line.trim());
     const edgeErrors = validateEdges(edgeLines);
     const penalty = parseFloat(penaltyInput);
     let penaltyErr = '';
-    
+
     if (isNaN(penalty) || penalty < 0 || penalty > 1) {
       penaltyErr = 'Penalty must be between 0 and 1';
     }
 
-    const nodes = Array.from(new Set(edgeLines.flatMap(line => {
-      const [from, to] = line.trim().split(' ');
-      return [from, to];
-    })));
+    const nodes = Array.from(
+      new Set(
+        edgeLines.flatMap((line) => {
+          const [from, to] = line.trim().split(' ');
+          return [from, to];
+        })
+      )
+    );
 
     const nodeErrors = validateNodes(nodes, source, destination);
 
@@ -58,156 +90,196 @@ const GraphInput = ({ setGraph, setWeightType, setPenalty, onCalculate }) => {
       return;
     }
 
-    // Process valid data
-    const edges = edgeLines.map(line => {
+    const edges = edgeLines.map((line) => {
       const [from, to, weight, community] = line.trim().split(' ');
       return { from, to, weight: parseFloat(weight), community };
     });
 
-    setGraph({ nodes: nodes.map(id => ({ id, label: id })), edges });
+    setGraph({ nodes: nodes.map((id) => ({ id, label: id })), edges });
     setWeightType(weightOption === 'frequency' ? 'Interaction Frequency' : 'Engagement Score');
     setPenalty(penalty);
     onCalculate(source, destination);
   };
 
   const loadExampleData = () => {
-    setEdgesInput(`user1 user2 0.8 tech_community
+    setEdgesInput(
+      `user1 user2 0.8 tech_community
 user2 user3 0.7 entertainment
 user3 user4 0.9 tech_community
 user4 user5 0.6 sports
-user2 user5 0.75 entertainment`);
+user2 user5 0.75 entertainment`
+    );
     setSource('user1');
     setDestination('user5');
     setPenaltyInput(0.85);
   };
 
   return (
-    <div className="w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100">
-      <div className="flex justify-between items-start mb-6">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          Network Configuration
-        </h2>
-        <button
-          onClick={loadExampleData}
-          className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center"
-          type="button"
+    <StyledPaper elevation={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 'bold',
+            background: 'linear-gradient(to right, #7e57c2, #3f51b5)',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+          }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-          </svg>
+          Network Configuration
+        </Typography>
+        <IconButton
+          onClick={loadExampleData}
+          color="primary"
+          sx={{ fontSize: '0.875rem', fontWeight: 'medium' }}
+        >
+          <BookIcon sx={{ fontSize: 16, mr: 0.5 }} />
           Load Example
-        </button>
-      </div>
+        </IconButton>
+      </Box>
 
-      <div className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Weight Metric</label>
-            <select 
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              onChange={e => setWeightOption(e.target.value)}
-            >
-              <option value="frequency">Interaction Frequency</option>
-              <option value="engagement">Engagement Score</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              Choose between interaction frequency (0-1) or engagement score (0-100)
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Community Switch Penalty
-              <span className="ml-2 text-xs text-purple-400">(0-1 scale)</span>
-            </label>
-            <input
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Weight Metric</InputLabel>
+              <Select
+                value={weightOption}
+                onChange={(e) => setWeightOption(e.target.value)}
+                label="Weight Metric"
+              >
+                <MenuItem value="frequency">Interaction Frequency</MenuItem>
+                <MenuItem value="engagement">Engagement Score</MenuItem>
+              </Select>
+              <FormHelperText>
+                Choose between interaction frequency (0-1) or engagement score (0-100)
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Community Switch Penalty (0-1 scale)"
               type="number"
-              min="0"
-              max="1"
-              step="0.1"
-              className={`w-full px-4 py-2.5 border ${
-                penaltyError ? 'border-red-500' : 'border-gray-200'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+              inputProps={{ min: 0, max: 1, step: 0.1 }}
               value={penaltyInput}
-              onChange={e => setPenaltyInput(e.target.value)}
+              onChange={(e) => setPenaltyInput(e.target.value)}
+              error={!!penaltyError}
+              helperText={penaltyError}
             />
-            {penaltyError && <p className="text-red-500 text-xs mt-1">{penaltyError}</p>}
-          </div>
-        </div>
+          </Grid>
+        </Grid>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="block text-sm font-medium text-gray-700">
-              Edge Definitions
-              <span className="ml-2 text-xs text-purple-400">(source target weight community)</span>
-            </label>
-            <span className="text-xs text-gray-500">{edgesInput.split('\n').filter(l => l.trim()).length} edges defined</span>
-          </div>
-          <textarea
-            className={`w-full h-40 px-4 py-3 border ${
-              validationErrors.length ? 'border-red-500' : 'border-gray-200'
-            } rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+        <Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <Typography variant="body2" color="textSecondary">
+              Edge Definitions{' '}
+              <Typography component="span" variant="caption" color="primary">
+                (source target weight community)
+              </Typography>
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              {edgesInput.split('\n').filter((l) => l.trim()).length} edges defined
+            </Typography>
+          </Box>
+          <TextField
+            fullWidth
+            multiline
+            rows={5}
             value={edgesInput}
-            onChange={e => setEdgesInput(e.target.value)}
+            onChange={(e) => setEdgesInput(e.target.value)}
             placeholder={`# Example format:
 user1 user2 0.8 tech_community
 user2 user3 0.7 entertainment
 user3 user4 0.9 tech_community`}
+            error={validationErrors.length > 0}
+            sx={{ '& .MuiInputBase-root': { fontFamily: 'monospace', fontSize: '0.875rem' } }}
           />
-          <div className="text-xs text-gray-600">
-            <p>Each line should contain:</p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Source node name</li>
-              <li>Target node name</li>
-              <li>Weight (0-1)</li>
-              <li>Community name</li>
+          <Box mt={1}>
+            <Typography variant="caption" color="textSecondary">
+              Each line should contain:
+            </Typography>
+            <ul style={{ paddingLeft: 20, margin: '4px 0' }}>
+              <li>
+                <Typography variant="caption" color="textSecondary">
+                  Source node name
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="caption" color="textSecondary">
+                  Target node name
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="caption" color="textSecondary">
+                  Weight (0-1)
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="caption" color="textSecondary">
+                  Community name
+                </Typography>
+              </li>
             </ul>
-          </div>
+          </Box>
           {validationErrors.map((error, index) => (
-            <div key={index} className="text-red-500 text-xs flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              {error}
-            </div>
+            <Box key={index} display="flex" alignItems="center" color="error.main" mt={1}>
+              <ErrorIcon sx={{ fontSize: 16, mr: 0.5 }} />
+              <Typography variant="caption">{error}</Typography>
+            </Box>
           ))}
-        </div>
+        </Box>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Source Node</label>
-            <input
-              className={`w-full px-4 py-2.5 border ${
-                sourceError ? 'border-red-500' : 'border-gray-200'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Source Node"
               value={source}
-              onChange={e => setSource(e.target.value)}
+              onChange={(e) => setSource(e.target.value)}
+              error={!!sourceError}
+              helperText={sourceError}
             />
-            {sourceError && <p className="text-red-500 text-xs mt-1">{sourceError}</p>}
-          </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Target Node</label>
-            <input
-              className={`w-full px-4 py-2.5 border ${
-                destinationError ? 'border-red-500' : 'border-gray-200'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Target Node"
               value={destination}
-              onChange={e => setDestination(e.target.value)}
+              onChange={(e) => setDestination(e.target.value)}
+              error={!!destinationError}
+              helperText={destinationError}
             />
-            {destinationError && <p className="text-red-500 text-xs mt-1">{destinationError}</p>}
-          </div>
-        </div>
-      </div>
+          </Grid>
+        </Grid>
+      </Box>
 
-      <button
+      <Button
+        fullWidth
+        variant="contained"
+        color="primary"
         onClick={handleSubmit}
-        className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={validationErrors.length > 0 || !!penaltyError}
+        sx={{
+          mt: 3,
+          py: 1.5,
+          borderRadius: 12,
+          textTransform: 'none',
+          fontWeight: 'bold',
+          '&:hover': {
+            transform: 'scale(1.02)',
+            boxShadow: (theme) => theme.shadows[6],
+          },
+          '&:disabled': {
+            opacity: 0.5,
+            cursor: 'not-allowed',
+          },
+        }}
       >
         Calculate Influence Pathway
-      </button>
-    </div>
+      </Button>
+    </StyledPaper>
   );
 };
 
